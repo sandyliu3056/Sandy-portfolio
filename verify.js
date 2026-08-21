@@ -1,7 +1,9 @@
 /* Serve deploy/ and check every asset + internal link actually resolves. */
 const http=require("http"),fs=require("fs"),path=require("path");
 const {chromium}=require("playwright");
-const ROOT=path.join(process.cwd(),"deploy");
+/* 檔案平放在同一層時就用當前目錄；沿用舊的 deploy/ 版面也照樣支援。 */
+const DEPLOY=path.join(process.cwd(),"deploy");
+const ROOT=fs.existsSync(DEPLOY)?DEPLOY:process.cwd();
 const BASE=process.env.BASE||"";   // e.g. BASE=/Sandy-Profilo
 const MIME={".html":"text/html",".png":"image/png",".svg":"image/svg+xml",".css":"text/css",".js":"text/javascript"};
 const srv=http.createServer((req,res)=>{

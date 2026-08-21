@@ -5,8 +5,12 @@
 
 ```
 index.html               整個網站（照片與分頁圖示已內嵌）
+reprice-platform.html    作品 01
+3pl-training.html        作品 03
 apple-touch-icon.png     iOS 加到主畫面的圖示 180x180
+favicon.png / .svg       分頁圖示，3pl-training.html 用
 og.png                   分享預覽圖 1200x630
+sandy.jpg                個人照原檔（index.html 已內嵌一份，這張是備份）
 verify.js                上線前自我檢查（可選，需要 node）
 README.md                這份文件
 
@@ -146,6 +150,27 @@ node verify.js
 | 作品數量 | `<span data-t="count">`＋`TXT` 裡的 `count`（**兩個語言都要改**） |
 | 任何文字 | `TXT.en` / `TXT.zh` 兩份字典，key 必須一一對應 |
 | 顏色 | 最上面的 `:root{--bg/--panel/--ink/--gold/--gold2}` |
+| 頁尾的貓狗 | 見下一節 |
 
 新增作品時最容易漏掉的就是「數量」那一欄，因為它是寫死的字串，
 不是自動算的。`verify.js` 不會抓這個，要自己記得。
+
+---
+
+## 頁尾的貓狗散步條
+
+頁尾上方那條地面上有一隻柯基和一隻貓在走動，滑鼠移過去或點一下會有反應。
+純 canvas 畫的，沒有圖檔、沒有外部相依，所以換網域、換主機都不用管它。
+
+在 `index.html` 裡是獨立的三段，彼此不相依：
+
+| 想做什麼 | 改哪裡 |
+|---|---|
+| 換毛色 | 最後一段 `<script>` 開頭的 `DOG_A`／`DOG_B`／`CAT_A`／`CAT_B` |
+| 調高度 | CSS 的 `.petstrip{height:clamp(...)}` |
+| 整個拿掉 | 刪 `<div class="petstrip">` 那一行 |
+
+其餘顏色都吃 `:root` 的變數，換配色時會自己跟著變。
+
+使用者若在系統開了「減少動態效果」，這條會自動變成靜止的一張圖；
+分頁切到背景或捲動到看不見時也會自己停，不會一直吃電。

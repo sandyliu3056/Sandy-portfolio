@@ -114,6 +114,13 @@ main{flex:1;display:flex;flex-direction:column}
 .bullets li:before{content:"•";position:absolute;left:2px;color:var(--ink)}
 .hidden{display:none!important}
 
+/* 頁尾寵物散步條。整條不吃滑鼠事件，只有 canvas 自己吃，
+   所以不會擋到底下的頁尾連結。 */
+.petstrip{position:relative;height:clamp(72px,8vw,90px);overflow:hidden;
+  pointer-events:none;user-select:none;-webkit-user-select:none}
+.petstrip canvas{width:100%;height:100%;display:block;pointer-events:auto}
+@media print{.petstrip{display:none}}
+
 footer{background:var(--ink);color:var(--cream);align-items:center;gap:18px;
   padding:8px 3vw;font-size:11px;display:flex}
 footer a{color:var(--cream);text-decoration:none}
@@ -232,6 +239,8 @@ footer span{opacity:.65;margin-left:auto}
       </div>
     </div>
   </section>
+
+  <div class="petstrip"><canvas id="petCanvas" aria-hidden="true"></canvas></div>
 
   <footer>
     <b data-t="contact">Contact</b>
@@ -358,6 +367,544 @@ document.querySelectorAll(".tab").forEach(function(btn){
   btn.addEventListener("click", function(){ showPane(btn.getAttribute("data-pane")); });
 });
 paint();
+</script>
+
+<script>
+/* ── 頁尾寵物散步條 ─────────────────────────────────────────────
+   一隻柯基和一隻貓在頁面最底下的地面上走動。純 canvas 手繪，
+   沒有圖檔、沒有外部相依。每隔幾秒換一個動作；滑鼠移到條上柯基
+   會小跑過來，點一下兩隻都有反應。
+   要整個關掉：刪掉 <div class="petstrip"> 那一段就好，其他不受影響。
+──────────────────────────────────────────────────────────────── */
+(function () {
+"use strict";
+
+var TAU = Math.PI * 2;
+
+/* 毛色。想換色改這裡就好，其餘都吃 :root 的變數 */
+var INK = "#4A3729", GOLD = "#C9A47C";
+var DOG_A = "#E2A45F", DOG_B = "#FFF7EA";   /* 柯基：橘黃 / 白肚 */
+var CAT_A = "#9C8E82", CAT_B = "#FFF7EA";   /* 灰虎斑 / 白肚 */
+var NOSE = "#5C4033", TONGUE = "#E28C8C", PINK = "#E9B7B0";
+
+/* ── 小工具 ─────────────────────────────────────────────────── */
+function ell(c, x, y, rx, ry, rot) {
+  c.beginPath(); c.ellipse(x, y, rx, ry, rot || 0, 0, TAU);
+}
+function ink(c, fill, w) {
+  if (fill) { c.fillStyle = fill; c.fill(); }
+  c.lineWidth = w || 2; c.strokeStyle = INK; c.stroke();
+}
+function limb(c, x0, y0, x1, y1, w, col) {
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1);
+  c.lineWidth = w + 1.6; c.strokeStyle = INK; c.stroke();
+  c.lineWidth = w; c.strokeStyle = col; c.stroke();
+}
+function dot(c, x, y, r, col) {
+  c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = col; c.fill();
+}
+function eye(c, x, y, open) {
+  if (open > 0.35) { dot(c, x, y, 1.7, INK); dot(c, x - 0.5, y - 0.6, 0.6, "#fff"); }
+  else { c.beginPath(); c.moveTo(x - 2, y); c.lineTo(x + 2, y);
+         c.lineWidth = 1.6; c.strokeStyle = INK; c.stroke(); }
+}
+
+/* ── 柯基 ───────────────────────────────────────────────────── */
+function dogEar(c, x, y, rot) {
+  c.save(); c.translate(x, y); c.rotate(rot);
+  c.beginPath();
+  c.moveTo(-3.8, 3.4);
+  c.quadraticCurveTo(-2.2, -9, 3.6, -1.4);
+  c.quadraticCurveTo(1.6, 3.6, -3.8, 3.4);
+  c.closePath(); ink(c, DOG_A, 2);
+  c.beginPath();
+  c.moveTo(-1.8, 2.2); c.quadraticCurveTo(-1, -4.6, 1.8, -0.8);
+  c.quadraticCurveTo(0.6, 2.4, -1.8, 2.2);
+  c.closePath(); c.fillStyle = PINK; c.fill();
+  c.restore();
+}
+
+function dogHead(c, p, t, tilt) {
+  c.save(); c.rotate(tilt);
+  dogEar(c, -5.2, -7.6, -0.5);
+  dogEar(c, 5.0, -8.2, 0.3);
+  ell(c, 0, 0, 9.4, 8.8); ink(c, DOG_A, 2.2);
+  /* 白色臉中線 */
+  c.save(); ell(c, 0, 0, 9.4, 8.8); c.clip();
+  c.beginPath(); c.moveTo(1.5, -9); c.quadraticCurveTo(4.5, 0, 2.5, 9);
+  c.lineTo(9, 9); c.lineTo(9, -9); c.closePath();
+  c.fillStyle = DOG_B; c.fill(); c.restore();
+  ell(c, 6.4, 3.0, 6.4, 4.8); ink(c, DOG_B, 2);
+  dot(c, 11.2, 1.4, 1.9, NOSE);
+  eye(c, 1.2, -1.6, p.blink);
+  eye(c, 8.0, -2.6, p.blink);
+  /* 嘴 */
+  c.beginPath(); c.moveTo(10.4, 3.4); c.quadraticCurveTo(8.6, 5.6, 6.6, 4.2);
+  c.lineWidth = 1.6; c.strokeStyle = INK; c.stroke();
+  if (p.happy > 0) {   /* 吐舌頭 */
+    c.beginPath(); c.ellipse(8.6, 6.4, 2.1, 2.6, 0.2, 0, TAU);
+    ink(c, TONGUE, 1.4);
+  }
+  c.restore();
+}
+
+function dogTail(c, x, y, ang) {
+  c.save(); c.translate(x, y); c.rotate(ang);
+  c.beginPath();
+  c.moveTo(2, 1.5);
+  c.bezierCurveTo(-5, 2, -9, -3, -6.5, -7);
+  c.bezierCurveTo(-4, -10, 1, -6, 2, -2.5);
+  c.closePath(); ink(c, DOG_A, 2);
+  c.restore();
+}
+
+function dogLeg(c, x, ph, moving, top) {
+  var sw = moving ? Math.sin(ph) * 3.4 : 0;
+  var up = moving ? Math.max(0, Math.sin(ph)) * 2.0 : 0;
+  limb(c, x, top, x + sw, -1.6 - up, 4.4, DOG_B);
+  dot(c, x + sw, -1.4 - up, 2.6, INK);
+  dot(c, x + sw, -1.6 - up, 1.9, DOG_B);
+}
+
+function drawDogStand(c, p, t) {
+  var moving = p.state === "walk" || p.state === "trot";
+  var ph = p.phase, bob = moving ? Math.sin(ph * 2) * 0.7 : 0;
+  var sniff = p.state === "sniff" ? 1 : 0;
+  if (sniff) bob -= 1.2;
+
+  dogTail(c, -16.5, -19 + bob, Math.sin(t * p.wagSpd) * p.wagAmp - 0.2);
+  dogLeg(c, -12, ph + Math.PI, moving, -9 + bob);
+  dogLeg(c, 10, ph + 0.4, moving, -9 + bob);
+
+  ell(c, 0, -15 + bob, 18.5, 9); ink(c, DOG_A, 2.2);
+  c.save(); ell(c, 0, -15 + bob, 18.5, 9); c.clip();
+  ell(c, 3, -7.8 + bob, 15, 5.6); c.fillStyle = DOG_B; c.fill();
+  c.restore();
+
+  dogLeg(c, -6, ph + 2.6, moving, -9 + bob);
+  dogLeg(c, 15, ph + 3.5, moving, -9 + bob);
+
+  c.save();
+  c.translate(17.5 + sniff * 1.5, -23.5 + bob + sniff * 8.5);
+  dogHead(c, p, t, sniff * 0.6);
+  c.restore();
+}
+
+function drawDogSit(c, p, t) {
+  var hop = p.state === "bark" ? Math.max(0, Math.sin(p.tState * 11)) * 4.5 : 0;
+  /* 尾巴在地上掃 */
+  dogTail(c, -17, -13, Math.sin(t * p.wagSpd) * p.wagAmp * 0.9 + 0.5);
+  ell(c, -8.5, -10.5, 10.5, 10.5); ink(c, DOG_A, 2.2);   /* 後腿臀部 */
+  dot(c, -13.5, -2.2, 2.8, INK); dot(c, -13.5, -2.4, 2.1, DOG_B);
+
+  c.save(); c.translate(0, -hop);
+  ell(c, 3, -15, 11.5, 13, -0.1); ink(c, DOG_A, 2.2);
+  c.save(); ell(c, 3, -15, 11.5, 13, -0.1); c.clip();
+  ell(c, 9, -12, 8, 11); c.fillStyle = DOG_B; c.fill(); c.restore();
+  limb(c, 9, -14, 10.5, -2.2, 4.4, DOG_B);
+  dot(c, 10.6, -1.8, 2.6, INK); dot(c, 10.6, -2, 1.9, DOG_B);
+  limb(c, 4.5, -14, 5.5, -2.2, 4.4, DOG_B);
+  dot(c, 5.6, -1.8, 2.6, INK); dot(c, 5.6, -2, 1.9, DOG_B);
+  c.save(); c.translate(9.5, -33.5); dogHead(c, p, t, -0.06); c.restore();
+  c.restore();
+}
+
+function drawDog(c, p, t) {
+  c.save();
+  c.translate(p.x, 0); c.scale(p.dir * p.s, p.s);
+  c.lineJoin = "round"; c.lineCap = "round";
+  if (p.state === "sit" || p.state === "wag" || p.state === "bark") drawDogSit(c, p, t);
+  else drawDogStand(c, p, t);
+  c.restore();
+}
+
+/* ── 貓 ─────────────────────────────────────────────────────── */
+function catEar(c, x, y, rot) {
+  c.save(); c.translate(x, y); c.rotate(rot);
+  c.beginPath(); c.moveTo(-3.4, 2.6); c.lineTo(-0.6, -6.4); c.lineTo(3.4, 1.2);
+  c.closePath(); ink(c, CAT_A, 2);
+  c.beginPath(); c.moveTo(-1.4, 1.6); c.lineTo(-0.4, -3.2); c.lineTo(1.4, 0.6);
+  c.closePath(); c.fillStyle = PINK; c.fill();
+  c.restore();
+}
+
+function catHead(c, p, t, tilt) {
+  c.save(); c.rotate(tilt);
+  catEar(c, -4.4, -6.2, -0.22 + Math.sin(t * 3 + p.seed) * 0.05 * p.alert);
+  catEar(c, 4.4, -6.2, 0.22 - Math.sin(t * 3 + p.seed) * 0.05 * p.alert);
+  ell(c, 0, 0, 7.8, 7.2); ink(c, CAT_A, 2.1);
+  c.save(); ell(c, 0, 0, 7.8, 7.2); c.clip();
+  ell(c, 4, 3.4, 6, 4.6); c.fillStyle = CAT_B; c.fill(); c.restore();
+  eye(c, 0.6, -1.4, p.blink * p.awake);
+  eye(c, 5.8, -1.8, p.blink * p.awake);
+  dot(c, 6.6, 1.8, 1.3, PINK);
+  c.beginPath();
+  c.moveTo(6.6, 3); c.quadraticCurveTo(5.2, 4.6, 3.8, 3.4);
+  c.moveTo(6.6, 3); c.quadraticCurveTo(7.4, 4.6, 8.6, 3.6);
+  c.lineWidth = 1.3; c.strokeStyle = INK; c.stroke();
+  /* 鬍鬚 */
+  c.beginPath();
+  c.moveTo(7.4, 1.6); c.lineTo(13.5, 0.2);
+  c.moveTo(7.4, 2.6); c.lineTo(13.5, 3.4);
+  c.lineWidth = 0.9; c.strokeStyle = INK; c.globalAlpha = 0.7; c.stroke();
+  c.globalAlpha = 1;
+  c.restore();
+}
+
+function catTail(c, x, y, a, b, len) {
+  c.beginPath();
+  c.moveTo(x, y);
+  c.bezierCurveTo(x - len * 0.5, y + a, x - len * 0.95, y - 6 + b, x - len * 0.8, y - 13 + b * 1.6);
+  c.lineWidth = 4.6; c.strokeStyle = INK; c.lineCap = "round"; c.stroke();
+  c.lineWidth = 3; c.strokeStyle = CAT_A; c.stroke();
+}
+
+function catStripes(c, x, y, n) {
+  c.save(); c.clip(); c.lineWidth = 1.6; c.strokeStyle = INK; c.globalAlpha = 0.42;
+  for (var i = 0; i < n; i++) {
+    c.beginPath();
+    c.arc(x - i * 5.5, y + 1.5, 4.6, Math.PI * 1.15, Math.PI * 1.85);
+    c.stroke();
+  }
+  c.globalAlpha = 1; c.restore();
+}
+
+function catLeg(c, x, ph, moving, top) {
+  var sw = moving ? Math.sin(ph) * 3.6 : 0;
+  var up = moving ? Math.max(0, Math.sin(ph)) * 2.2 : 0;
+  limb(c, x, top, x + sw, -1.4 - up, 3.6, CAT_A);
+  dot(c, x + sw, -1.4 - up, 2.2, INK);
+  dot(c, x + sw, -1.6 - up, 1.5, CAT_B);
+}
+
+function drawCatStand(c, p, t) {
+  var moving = p.state === "walk";
+  var ph = p.phase, bob = moving ? Math.sin(ph * 2) * 0.6 : 0;
+  catTail(c, -13, -16 + bob, Math.sin(t * 1.7 + p.seed) * 3, Math.sin(t * 2.1) * 2.2, 13);
+  catLeg(c, -9, ph + Math.PI, moving, -10 + bob);
+  catLeg(c, 8, ph + 0.5, moving, -10 + bob);
+  ell(c, 0, -16 + bob, 14.5, 7.2); ink(c, CAT_A, 2.1);
+  c.save(); ell(c, 0, -16 + bob, 14.5, 7.2); c.clip();
+  ell(c, 1, -11 + bob, 12, 4.4); c.fillStyle = CAT_B; c.fill(); c.restore();
+  ell(c, 0, -16 + bob, 14.5, 7.2); catStripes(c, -1, -20.5 + bob, 3);
+  catLeg(c, -4, ph + 2.8, moving, -10 + bob);
+  catLeg(c, 12, ph + 3.6, moving, -10 + bob);
+  c.save(); c.translate(15, -24.5 + bob); catHead(c, p, t, 0); c.restore();
+}
+
+function drawCatSit(c, p, t) {
+  var groom = p.state === "groom" ? Math.abs(Math.sin(p.tState * 5.2)) : 0;
+  catTail(c, -8, -3.5, -2, Math.sin(t * 1.4 + p.seed) * 3, 0);
+  /* 坐姿：尾巴繞到身前 */
+  c.beginPath();
+  c.moveTo(-9, -3);
+  c.bezierCurveTo(-14, 0, 2, 1.5, 13 + Math.sin(t * 1.6) * 1.5, -3.5);
+  c.lineWidth = 4.6; c.strokeStyle = INK; c.stroke();
+  c.lineWidth = 3; c.strokeStyle = CAT_A; c.stroke();
+  ell(c, -1, -13, 9.5, 13.5, 0.06); ink(c, CAT_A, 2.1);
+  c.save(); ell(c, -1, -13, 9.5, 13.5, 0.06); c.clip();
+  ell(c, 5, -8, 7, 10); c.fillStyle = CAT_B; c.fill(); c.restore();
+  ell(c, -1, -13, 9.5, 13.5, 0.06); catStripes(c, -4, -20.5, 2);
+  if (groom > 0.05) {                       /* 抬起前腳舔 */
+    limb(c, 5, -12, 7.5 + groom * 1.5, -16 - groom * 3, 3.4, CAT_B);
+    dot(c, 7.8 + groom * 1.5, -16.4 - groom * 3, 2.2, INK);
+    dot(c, 7.8 + groom * 1.5, -16.6 - groom * 3, 1.5, CAT_B);
+  } else {
+    limb(c, 5.5, -12, 6.2, -2, 3.4, CAT_B);
+    dot(c, 6.3, -1.6, 2.2, INK); dot(c, 6.3, -1.8, 1.5, CAT_B);
+  }
+  limb(c, 2, -12, 2.6, -2, 3.4, CAT_B);
+  dot(c, 2.7, -1.6, 2.2, INK); dot(c, 2.7, -1.8, 1.5, CAT_B);
+  c.save();
+  c.translate(2.5 + groom * 2, -27 + groom * 5.5);
+  catHead(c, p, t, groom * 0.8);
+  c.restore();
+}
+
+function drawCatStretch(c, p, t) {
+  var k = Math.sin(Math.min(1, p.tState / 1.1) * Math.PI);   /* 0→1→0 */
+  catTail(c, -13, -14, -6 * k, -4 * k, 13);
+  catLeg(c, -9, 0, false, -11 + k * 2);
+  catLeg(c, -5, 0, false, -11 + k * 2);
+  c.save(); c.rotate(-0.2 * k);
+  ell(c, 0, -14 - k * 1.5, 15.5, 6.6, 0); ink(c, CAT_A, 2.1);
+  c.save(); ell(c, 0, -14 - k * 1.5, 15.5, 6.6); c.clip();
+  ell(c, 1, -9.5, 13, 4); c.fillStyle = CAT_B; c.fill(); c.restore();
+  ell(c, 0, -14 - k * 1.5, 15.5, 6.6); catStripes(c, -1, -18.5 - k * 1.5, 3);
+  c.restore();
+  limb(c, 11, -12 + k * 2, 17 + k * 4, -1.4, 3.6, CAT_A);
+  dot(c, 17.5 + k * 4, -1.4, 2.2, INK); dot(c, 17.5 + k * 4, -1.6, 1.5, CAT_B);
+  limb(c, 8, -12 + k * 2, 14 + k * 4, -1.4, 3.6, CAT_A);
+  dot(c, 14.5 + k * 4, -1.4, 2.2, INK); dot(c, 14.5 + k * 4, -1.6, 1.5, CAT_B);
+  c.save(); c.translate(14 + k * 3, -19 + k * 4); catHead(c, p, t, 0.12 + k * 0.2); c.restore();
+}
+
+function drawCatSleep(c, p, t) {
+  var br = Math.sin(t * 1.6) * 0.5;   /* 呼吸 */
+  c.beginPath();
+  c.moveTo(13, -3);
+  c.bezierCurveTo(20, -8, 14, -14, 6, -11);
+  c.lineWidth = 4.6; c.strokeStyle = INK; c.stroke();
+  c.lineWidth = 3; c.strokeStyle = CAT_A; c.stroke();
+  ell(c, 0, -9 - br * 0.4, 15, 9 + br); ink(c, CAT_A, 2.1);
+  ell(c, 0, -9 - br * 0.4, 15, 9 + br); catStripes(c, -3, -14 - br, 3);
+  c.save(); c.translate(10.5, -11);
+  catEar(c, -4.2, -5.4, -0.3); catEar(c, 4, -5.6, 0.3);
+  ell(c, 0, 0, 7.2, 6.6); ink(c, CAT_A, 2.1);
+  c.save(); ell(c, 0, 0, 7.2, 6.6); c.clip();
+  ell(c, 3, 3, 5.5, 4); c.fillStyle = CAT_B; c.fill(); c.restore();
+  c.beginPath();
+  c.moveTo(-2.4, -0.6); c.quadraticCurveTo(-0.6, 1.2, 1.2, -0.6);
+  c.moveTo(3.4, -1); c.quadraticCurveTo(5, 0.8, 6.6, -1);
+  c.lineWidth = 1.5; c.strokeStyle = INK; c.stroke();
+  dot(c, 5.4, 2.2, 1.2, PINK);
+  c.restore();
+}
+
+function drawCat(c, p, t) {
+  c.save();
+  c.translate(p.x, 0); c.scale(p.dir * p.s, p.s);
+  c.lineJoin = "round"; c.lineCap = "round";
+  if (p.state === "sleep") drawCatSleep(c, p, t);
+  else if (p.state === "stretch") drawCatStretch(c, p, t);
+  else if (p.state === "walk") drawCatStand(c, p, t);
+  else drawCatSit(c, p, t);
+  c.restore();
+}
+
+/* ── 地面 ───────────────────────────────────────────────────── */
+function drawGround(c, W, seedList) {
+  c.save();
+  c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0);
+  c.lineWidth = 2; c.strokeStyle = GOLD; c.globalAlpha = 0.85; c.stroke();
+  c.globalAlpha = 0.6; c.lineWidth = 1.6;
+  for (var i = 0; i < seedList.length; i++) {
+    var g = seedList[i];
+    if (g.k === 0) {                       /* 草 */
+      c.beginPath();
+      c.moveTo(g.x, 0); c.quadraticCurveTo(g.x - 1, -4, g.x - 3.4, -6.2);
+      c.moveTo(g.x, 0); c.quadraticCurveTo(g.x + 0.6, -5, g.x + 0.4, -7.6);
+      c.moveTo(g.x, 0); c.quadraticCurveTo(g.x + 2, -4, g.x + 3.8, -5.8);
+      c.strokeStyle = GOLD; c.stroke();
+    } else {                                /* 小石頭 */
+      c.beginPath(); c.ellipse(g.x, -1.6, 3.2, 2, 0, Math.PI, 0);
+      c.strokeStyle = GOLD; c.stroke();
+    }
+  }
+  c.restore();
+}
+
+function drawPaws(c, paws) {
+  c.save();
+  for (var i = 0; i < paws.length; i++) {
+    var w = paws[i], a = Math.max(0, w.life / 2.4) * 0.5;
+    if (a <= 0) continue;
+    c.globalAlpha = a; c.fillStyle = GOLD;
+    c.beginPath(); c.ellipse(w.x, w.y, 2.1, 1.7, 0, 0, TAU); c.fill();
+    c.beginPath(); c.arc(w.x - 2, w.y - 2.4, 0.8, 0, TAU); c.fill();
+    c.beginPath(); c.arc(w.x + 0.4, w.y - 3, 0.8, 0, TAU); c.fill();
+    c.beginPath(); c.arc(w.x + 2.6, w.y - 2, 0.8, 0, TAU); c.fill();
+  }
+  c.restore();
+}
+
+function drawPuffs(c, puffs, font) {
+  c.save();
+  c.font = "13px " + font; c.textAlign = "center";
+  for (var i = 0; i < puffs.length; i++) {
+    var q = puffs[i], a = Math.max(0, Math.min(1, q.life / 0.9));
+    if (a <= 0) continue;
+    c.globalAlpha = a;
+    c.fillStyle = q.c || INK;
+    c.fillText(q.s, q.x, q.y);
+  }
+  c.restore();
+}
+
+/* ── 執行 ───────────────────────────────────────────────────── */
+function boot() {
+  var cv = document.getElementById("petCanvas");
+  if (!cv || !cv.getContext) return;
+  var c = cv.getContext("2d");
+  var host = cv.parentNode;
+  var font = getComputedStyle(document.body).fontFamily || "sans-serif";
+  var quiet = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var W = 0, H = 0, base = 0, decor = [], placed = false;
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = host.clientWidth; H = host.clientHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    base = H - 11;
+    decor = [];
+    for (var x = 24; x < W - 24; x += rnd(70, 150))
+      decor.push({ x: x, k: Math.random() < 0.72 ? 0 : 1 });
+    if (!placed && W > 0) { placed = true; dog.x = W * 0.18; cat.x = W * 0.52; }
+    dog.x = Math.min(dog.x, W - 40); cat.x = Math.min(cat.x, W - 40);
+    drawn = false;
+  }
+
+  function pet(kind, x, s) {
+    return { kind: kind, x: x, s: s, dir: 1, state: "sit", tState: 0, dur: 2,
+             phase: 0, speed: 0, blink: 1, blinkAt: rnd(1, 5), seed: rnd(0, 6),
+             wagSpd: 6, wagAmp: 0.3, happy: 0, alert: 1, awake: 1, hold: 0 };
+  }
+  var dog = pet("dog", 90, 1.12), cat = pet("cat", 260, 1.05);
+  var paws = [], puffs = [], mouse = { on: false, x: 0 };
+
+  var DOG_ACTS = [["walk", 2.4, 4.6], ["sniff", 1.4, 2.8], ["sit", 2.4, 5], ["wag", 1.8, 3.2]];
+  var CAT_ACTS = [["walk", 2.2, 4.2], ["sit", 3, 6], ["groom", 2, 3.6],
+                  ["stretch", 1.1, 1.1], ["sleep", 5, 9]];
+
+  function nextAct(p) {
+    var list = p.kind === "dog" ? DOG_ACTS : CAT_ACTS;
+    var a = list[(Math.random() * list.length) | 0];
+    if (a[0] === p.state && Math.random() < 0.7) a = list[(Math.random() * list.length) | 0];
+    setAct(p, a[0], rnd(a[1], a[2]));
+  }
+
+  function setAct(p, s, d) {
+    p.state = s; p.tState = 0; p.dur = d;
+    p.happy = (s === "wag" || s === "bark") ? 1 : 0;
+    p.awake = s === "sleep" ? 0 : 1;
+    p.wagSpd = s === "wag" || s === "bark" ? 13 : 6;
+    p.wagAmp = s === "wag" || s === "bark" ? 0.62 : 0.3;
+    if (s === "walk") { p.speed = p.kind === "dog" ? rnd(30, 42) : rnd(22, 30);
+                        if (Math.random() < 0.45) p.dir = -p.dir; }
+    else if (s === "trot") p.speed = 88;
+    else p.speed = 0;
+  }
+
+  function step(p, dt, t) {
+    p.tState += dt;
+    p.blinkAt -= dt;
+    if (p.blinkAt <= 0) { p.blink = 0; if (p.blinkAt < -0.12) { p.blink = 1; p.blinkAt = rnd(2.4, 6); } }
+    if (p.hold > 0) p.hold -= dt;
+
+    if (p.speed) {
+      p.x += p.dir * p.speed * dt;
+      p.phase += dt * p.speed * 0.30;
+      if (p.x < 34) { p.x = 34; p.dir = 1; }
+      if (p.x > W - 34) { p.x = W - 34; p.dir = -1; }
+      if (p.kind === "dog" && (t - (p.pawAt || 0)) > 0.30) {
+        p.pawAt = t; paws.push({ x: p.x - p.dir * 6, y: -2 - Math.random() * 1.5, life: 2.4 });
+        if (paws.length > 26) paws.shift();
+      }
+    }
+    if (p.tState > p.dur && p.hold <= 0) nextAct(p);
+  }
+
+  function react(p) {
+    if (p.kind === "dog") {
+      setAct(p, "bark", 1.2); p.hold = 1.2;
+      puffs.push({ s: "♪", x: p.x + 16, y: base - 46, life: 1.1, c: GOLD });
+    } else {
+      setAct(p, p.state === "sleep" ? "stretch" : "groom", 1.1); p.hold = 1.1;
+      puffs.push({ s: "♡", x: p.x + 10, y: base - 42, life: 1.1, c: "#D08A8A" });
+    }
+  }
+
+  cv.addEventListener("mousemove", function (e) {
+    var r = cv.getBoundingClientRect();
+    mouse.on = true; mouse.x = e.clientX - r.left;
+  });
+  cv.addEventListener("mouseleave", function () { mouse.on = false; });
+  cv.addEventListener("click", function (e) {
+    var r = cv.getBoundingClientRect(), x = e.clientX - r.left;
+    var d = Math.abs(x - dog.x) < Math.abs(x - cat.x) ? dog : cat;
+    if (Math.abs(x - d.x) < 70) react(d);
+  });
+  cv.addEventListener("touchstart", function (e) {
+    var r = cv.getBoundingClientRect(), x = e.touches[0].clientX - r.left;
+    var d = Math.abs(x - dog.x) < Math.abs(x - cat.x) ? dog : cat;
+    if (Math.abs(x - d.x) < 70) react(d);
+  }, { passive: true });
+
+  var last = 0, live = true, drawn = false;
+  document.addEventListener("visibilitychange", function () { last = 0; });
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (es) { live = es[0].isIntersecting; last = 0; })
+      .observe(host);
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (document.hidden || !live) return;
+    if (quiet && drawn) return;
+    var t = now / 1000;
+    var dt = last ? Math.min(0.05, t - last) : 0.016;
+    last = t;
+
+    if (!quiet) {
+      /* 滑鼠靠近時柯基會跑過來討摸 */
+      if (mouse.on && dog.hold <= 0) {
+        var gap = mouse.x - dog.x;
+        if (Math.abs(gap) > 34) {
+          if (dog.state !== "trot") setAct(dog, "trot", 9);
+          dog.dir = gap > 0 ? 1 : -1; dog.dur = 9; dog.tState = 0;
+        } else if (dog.state === "trot") { setAct(dog, "wag", 2.6); }
+      } else if (dog.state === "trot" && !mouse.on) nextAct(dog);
+
+      /* 走到太近：不是打招呼就是繞開，不會互相穿過去 */
+      var near = cat.x - dog.x;
+      cat.alert = Math.abs(near) < 60 ? 3 : 1;
+      if (Math.abs(near) < 36 && dog.speed && dog.hold <= 0) {
+        if (Math.random() < 0.5) { setAct(dog, "wag", rnd(1.4, 2.4)); dog.hold = 1.3; }
+        else dog.dir = near > 0 ? -1 : 1;
+      }
+
+      /* 狗靠太近，睡覺的貓會醒 */
+      if (Math.abs(dog.x - cat.x) < 40 && cat.state === "sleep" && cat.hold <= 0) {
+        setAct(cat, "stretch", 1.1); cat.hold = 1.1;
+        puffs.push({ s: "!", x: cat.x + 8, y: base - 40, life: 0.9, c: INK });
+      }
+
+      step(dog, dt, t); step(cat, dt, t);
+      for (var i = paws.length - 1; i >= 0; i--)
+        if ((paws[i].life -= dt) <= 0) paws.splice(i, 1);
+      for (var j = puffs.length - 1; j >= 0; j--) {
+        puffs[j].life -= dt; puffs[j].y -= dt * 16;
+        if (puffs[j].life <= 0) puffs.splice(j, 1);
+      }
+    }
+
+    c.clearRect(0, 0, W, H);
+    c.save(); c.translate(0, base);
+    drawGround(c, W, decor);
+    drawPaws(c, paws);
+    if (cat.x < dog.x) { drawCat(c, cat, t); drawDog(c, dog, t); }
+    else { drawDog(c, dog, t); drawCat(c, cat, t); }
+    c.restore();
+    if (cat.state === "sleep") {
+      c.save(); c.font = "12px " + font; c.fillStyle = GOLD;
+      for (var z = 0; z < 3; z++) {
+        var f = (t * 0.5 + z * 0.33) % 1;
+        c.globalAlpha = 0.75 * (1 - f);
+        c.fillText("z", cat.x + 18 + f * 12 + Math.sin(f * 6) * 3, base - 26 - f * 22);
+      }
+      c.restore();
+    }
+    drawPuffs(c, puffs, font);
+    drawn = true;
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+  setAct(dog, "walk", 3); setAct(cat, "sit", 4);
+  requestAnimationFrame(frame);
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { drawDog: drawDog, drawCat: drawCat, drawGround: drawGround, drawPaws: drawPaws };
+} else if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else { boot(); }
+
+})();
 </script>
 </body>
 </html>
