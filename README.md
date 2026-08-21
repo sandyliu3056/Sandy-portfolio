@@ -67,14 +67,26 @@ BASE=/Sandy-Profilo node verify.js
 `og.png` 是依站上配色重做的（原檔是圖片，無法擷取），想換回原本的直接覆蓋
 同名檔案即可。
 
-### 換網域時唯一要改的兩行
+### 同一份內容有兩個網址
+
+```
+https://sandy-portfolio-red.vercel.app/            ← 正本
+https://sandyliu3056.github.io/Sandy-Profilo/  ← 同樣內容
+```
+
+`canonical` 已指向 Vercel。**GitHub Pages 那份也要換上這個 index.html**，
+它才會正確地說「正本在 Vercel」——那句話是寫在它自己的檔案裡的。
+
+### 換網域時要改的四行
 
 社群分享預覽圖（貼連結到 LINE、Facebook、Slack 時跳出的那張圖）已經寫成
 完整網址，指向目前的 GitHub Pages：
 
 ```
-第 11 行  <meta property="og:image" content="https://sandyliu3056.github.io/Sandy-Profilo/og.png">
-第 18 行  <meta name="twitter:image" content="https://sandyliu3056.github.io/Sandy-Profilo/og.png">
+<link rel="canonical"      href="https://sandy-portfolio-red.vercel.app/">
+<meta property="og:url"    content="https://sandy-portfolio-red.vercel.app/">
+<meta property="og:image"  content="https://sandy-portfolio-red.vercel.app/og.png">
+<meta name="twitter:image" content="https://sandy-portfolio-red.vercel.app/og.png">
 ```
 
 **這是整份檔案裡僅有的兩個絕對網址**（另一個 `animated-warehouse.vercel.app`
