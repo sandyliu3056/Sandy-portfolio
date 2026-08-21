@@ -4,23 +4,24 @@
 把這個資料夾的內容整包丟上任何靜態主機就會動。
 
 ```
-index.html               首頁（作品列表 + About Me + 中英切換）
-3pl-training.html        作品 03 的實際頁面
-sandy.jpg                About Me 的個人照 560x747
-favicon.png              分頁圖示 256x256（頭像裁切）
+index.html               整個網站（照片與分頁圖示已內嵌）
 apple-touch-icon.png     iOS 加到主畫面的圖示 180x180
 og.png                   分享預覽圖 1200x630
 verify.js                上線前自我檢查（可選，需要 node）
 README.md                這份文件
-```
 
-作品 01 和 02 都連到外部的獨立部署，不需要放在這裡：
+### 為什麼有些能內嵌、有些不行
 
-- 01 → `https://reprice-demo.vercel.app/`
-- 02 → `https://animated-warehouse.vercel.app/`
+個人照和分頁圖示已經轉成 base64 直接寫進 `index.html`，所以少了兩個檔案，
+也少了兩次網路請求。代價是 index.html 從 15KB 變成 93KB，這個大小完全沒問題。
 
-作品 01 原本在這個包裡有一份副本，已經移除——同一個檔案存在兩個地方，
-改了一邊忘記另一邊不會有任何錯誤訊息。現在正本只有 Reprice-Demo 那一份。
+`og.png` 和 `apple-touch-icon.png` **不能內嵌**，因為讀它們的不是瀏覽器：
+
+- `og.png` 是 LINE、Facebook 的爬蟲**從外部抓**的，它們只認得完整網址，
+  base64 一律抓不到，預覽圖就會消失。
+- `apple-touch-icon.png` 是 iOS 加到主畫面時讀的，data URI 支援不穩定。
+
+簡單的判準：**給瀏覽器看的可以內嵌，給外部程式抓的必須是真正的檔案。**
 
 ---
 
