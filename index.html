@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sandy Liu — Selected Work</title>
+<meta name="description" content="Selected logistics, freight billing and automation tools by Sandy Liu.">
+<meta property="og:title" content="Sandy Liu — Selected Work">
+<meta property="og:description" content="Logistics · Data · Automation.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sandy Liu — Logistics, Data, Automation">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sandy Liu — Selected Work">
+<meta name="twitter:description" content="Logistics · Data · Automation.">
+<meta name="twitter:image" content="/og.png">
+<link rel="icon" href="/favicon.svg">
+<style>
+*,:before,:after{box-sizing:border-box;margin:0;padding:0;border:0 solid}
+html{-webkit-text-size-adjust:100%;line-height:1.5}
+h1,h2,h3{font-size:inherit;font-weight:inherit}
+a{color:inherit;text-decoration:inherit}
+b,strong{font-weight:bolder}
+ol,ul{list-style:none}
+img,svg,canvas{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:transparent;border-radius:0}
+
+:root{--bg:#f5efe3;--panel:#fffaf0;--ink:#351c15;--gold:#ffb500;--gold2:#a27200}
+body{background:var(--bg);color:var(--ink);margin:0;
+  font-family:"Segoe Print","Comic Sans MS","Microsoft JhengHei",sans-serif;font-size:14px}
+button,a{font:inherit}
+
+.titlebar{background:var(--ink);min-height:58px;color:var(--gold);
+  align-items:center;gap:22px;padding:8px 3vw;display:flex}
+.titlebar h1{letter-spacing:.08em;margin:0;font-size:21px}
+.titlebar button{color:var(--gold);border:1px solid var(--gold);cursor:pointer;
+  background:0 0;border-radius:6px;margin-left:auto;padding:5px 10px}
+
+.tabs{background:var(--gold);border-bottom:3px solid var(--ink);
+  align-items:flex-end;gap:4px;height:49px;padding:0 3vw;display:flex}
+.tabs .tab{border:2px solid var(--ink);border-bottom:0;border-radius:9px 9px 0 0;
+  padding:10px 22px 9px;font-size:14px;cursor:pointer;color:var(--ink);
+  background:#ffd36a;font-weight:700}
+.tabs .tab.on{background:var(--panel);font-weight:400;cursor:default}
+.tabs .tab:not(.on):hover{background:var(--panel)}
+.tabs .tab:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+
+.workspace{padding:16px 3vw 32px}
+.summary{background:var(--panel);border:2px solid var(--ink);border-radius:11px;
+  margin-bottom:15px;padding:15px 19px;position:relative}
+.summary h2{margin:0;font-size:16px}
+.summary span{color:var(--gold2);font-size:11px;position:absolute;top:18px;right:18px}
+
+.projectList{gap:13px;display:grid}
+.project{background:var(--panel);border:1.5px solid var(--ink);border-radius:10px;
+  grid-template-columns:62px 1fr auto;align-items:center;gap:18px;padding:18px;display:grid}
+.number{background:var(--gold);border:2px solid var(--ink);border-radius:8px;
+  place-items:center;width:48px;height:48px;font-weight:900;display:grid}
+.project h2{margin:0;font-size:19px}
+.project .meta{color:var(--gold2);font-size:11px;margin-top:4px}
+.project>a{color:#fff;background:var(--ink);border:2px solid var(--ink);white-space:nowrap;
+  border-radius:7px;padding:9px 14px;font-weight:800;text-decoration:none}
+.project>a:hover{background:#1f100b}
+.project>a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+/* ---- About Me ---- */
+.card{background:var(--panel);border:1.5px solid var(--ink);border-radius:10px;padding:20px}
+.profile{display:grid;grid-template-columns:170px 1fr;gap:24px;align-items:start;
+  margin-bottom:14px}
+.profile img{width:170px;height:auto;border:2px solid var(--ink);border-radius:9px}
+.kicker{color:var(--gold2);letter-spacing:.14em;font-size:11px;font-weight:800;
+  text-transform:uppercase;margin-bottom:6px}
+.who{font-size:26px;font-weight:800;margin:0 0 6px}
+.role{font-weight:700;margin-bottom:10px}
+.lede{color:#6b503f;max-width:62ch;line-height:1.8;margin-bottom:13px}
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{border:1.5px solid var(--gold2);color:var(--gold2);border-radius:7px;
+  padding:5px 11px;font-size:12px;text-decoration:none}
+.chip:hover{background:#fff3d6}
+
+.aboutGrid{display:grid;grid-template-columns:1fr 300px;gap:15px;align-items:start}
+.card h3{font-size:15px;font-weight:800;margin:0 0 10px;
+  border-bottom:1.5px solid var(--ink);padding-bottom:8px}
+.card+.card{margin-top:15px}
+.entry{border-bottom:1px solid #e8dcc6;padding:11px 0}
+.entry:last-child{border-bottom:0;padding-bottom:0}
+.entry:first-of-type{padding-top:0}
+.entry .t{font-weight:800}
+.entry .m{color:var(--gold2);font-size:11px;margin-top:3px}
+.bullets li{color:var(--gold2);padding:4px 0 4px 15px;position:relative;line-height:1.6}
+.bullets li:before{content:"•";position:absolute;left:2px;color:var(--ink)}
+.hidden{display:none!important}
+
+footer{background:var(--ink);color:var(--gold);align-items:center;gap:18px;
+  padding:8px 3vw;font-size:11px;display:flex}
+footer a{color:var(--gold);text-decoration:none}
+footer span{opacity:.65;margin-left:auto}
+
+@media (width<=860px){
+  .aboutGrid{grid-template-columns:1fr}
+}
+@media (width<=700px){
+  .project{grid-template-columns:48px 1fr}
+  .number{width:42px;height:42px}
+  .project h2{font-size:17px}
+  .project>a{text-align:center;grid-column:1/-1}
+  .summary span{margin-top:8px;display:block;position:static}
+  .workspace{padding:12px}
+  .tabs{padding-left:12px}
+  .profile{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .profile img{width:150px;height:auto}
+  .lede{text-align:left}
+  .chips{justify-content:center}
+  footer{flex-wrap:wrap}
+  footer span{width:100%;margin:0}
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="titlebar">
+    <h1 data-t="title">Sandy Liu · Selected Work</h1>
+    <button id="langBtn" type="button">中文</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab on" type="button" data-pane="projects" data-t="tabProjects">📁 Projects</button>
+    <button class="tab" type="button" data-pane="about" data-t="tabAbout">About Me</button>
+  </nav>
+
+  <section class="workspace">
+    <div id="pane-projects">
+      <div class="summary">
+        <h2 data-t="projectsHead">📦 Projects</h2>
+        <span data-t="count">3 items</span>
+      </div>
+      <div class="projectList">
+        <article class="project">
+          <div class="number">01</div>
+          <div>
+            <h2 data-t="p1">Carrier Invoice Repricing Platform</h2>
+            <div class="meta" data-t="p1meta">Freight billing · audit &amp; repricing</div>
+          </div>
+          <a href="/reprice-platform.html" target="_blank" rel="noreferrer" data-t="open">Open website ↗</a>
+        </article>
+        <article class="project">
+          <div class="number">02</div>
+          <div>
+            <h2 data-t="p2">Animated Warehouse · Mobile App</h2>
+            <div class="meta" data-t="p2meta">Canvas animation · warehouse floor</div>
+          </div>
+          <a href="https://animated-warehouse.vercel.app/" target="_blank" rel="noreferrer" data-t="open">Open website ↗</a>
+        </article>
+        <article class="project">
+          <div class="number">03</div>
+          <div>
+            <h2 data-t="p3">3PL Logistics Training</h2>
+            <div class="meta" data-t="p3meta">Parcel rating engine · 3 languages · 5 modules</div>
+          </div>
+          <a href="/3pl-training.html" target="_blank" rel="noreferrer" data-t="open">Open website ↗</a>
+        </article>
+      </div>
+    </div>
+
+    <div id="pane-about" class="hidden">
+      <div class="summary"><h2 data-t="aboutHead">👤 About Me</h2></div>
+
+      <div class="card">
+        <div class="profile">
+          <img src="/sandy.jpg" width="560" height="747" alt="Sandy Liu">
+          <div>
+            <div class="kicker" data-t="kicker">Logistics · Billing · Automation</div>
+            <h2 class="who" data-t="who">劉相筠 Sandy Liu</h2>
+            <div class="role" data-t="role">Logistics Operations · Freight Billing · Process Automation</div>
+            <p class="lede" data-t="lede"></p>
+            <div class="chips">
+              <span class="chip" data-t="loc">New Taipei, Taiwan</span>
+              <a class="chip" href="mailto:sandyliu3056@gmail.com">sandyliu3056@gmail.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="aboutGrid" style="margin-top:15px">
+        <div>
+          <div class="card">
+            <h3 data-t="hExp">Work Experience</h3>
+            <div id="expList"></div>
+          </div>
+          <div class="card">
+            <h3 data-t="hEdu">Education</h3>
+            <div id="eduList"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3 data-t="hSkills">Skills</h3>
+            <ul class="bullets" id="skillList"></ul>
+          </div>
+          <div class="card">
+            <h3 data-t="hLang">Languages &amp; Certificate</h3>
+            <ul class="bullets" id="langList"></ul>
+          </div>
+          <div class="card">
+            <h3 data-t="hInt">Interests</h3>
+            <ul class="bullets" id="intList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b data-t="contact">Contact</b>
+    <a href="mailto:sandyliu3056@gmail.com">sandyliu3056@gmail.com</a>
+    <span>© 2026 Sandy Liu</span>
+  </footer>
+</main>
+
+<script>
+/* Both languages are declared with the SAME shape, so a missing entry shows up
+   as a structural mismatch rather than silently rendering half a pane. */
+var TXT = {
+  en: {
+    title:"Sandy Liu · Selected Work", tabProjects:"📁 Projects", tabAbout:"About Me",
+    projectsHead:"📦 Projects", count:"3 items", open:"Open website ↗",
+    p1:"Carrier Invoice Repricing Platform", p1meta:"Freight billing · audit & repricing",
+    p2:"Animated Warehouse · Mobile App",    p2meta:"Canvas animation · warehouse floor",
+    p3:"3PL Logistics Training",             p3meta:"Parcel rating engine · 3 languages · 5 modules",
+    aboutHead:"👤 About Me", contact:"Contact",
+    kicker:"Logistics · Billing · Automation",
+    who:"劉相筠 Sandy Liu",
+    role:"Logistics Operations · Freight Billing · Process Automation",
+    lede:"Nearly six years of experience in U.S. third-party logistics, with a focus on cross-border e-commerce, WMS operations, freight billing and contract rate analysis. Skilled in using Excel, AI and automation tools to organize complex data and improve repetitive workflows.",
+    loc:"New Taipei, Taiwan",
+    hExp:"Work Experience", hEdu:"Education", hSkills:"Skills",
+    hLang:"Languages & Certificate", hInt:"Interests",
+    exp:[
+      {t:"Cross-Border E-Commerce Logistics & Billing Specialist", m:"2020–2026 · American 3PL Company"},
+      {t:"English Teacher", m:"2020"},
+      {t:"Sales Associate · Cultural & Creative Apparel Brand", m:"2018–2019"},
+      {t:"Restaurant Service", m:"2017"}
+    ],
+    edu:[{t:"Ming Chuan University", m:"Applied English · 2014–2018"}],
+    skills:["Freight billing & rate analysis","UPS, FedEx & USPS pricing",
+            "Excel formulas & data cleanup","WMS operations & system testing",
+            "AI-assisted automation","Cross-functional communication"],
+    langs:["Chinese · Native","English · Professional","TOEIC · 840",
+           "Spanish · Basic","International Trade Certificate"],
+    interests:["Football · Real Madrid","English thriller novels · Tess Gerritsen",
+               "Swimming & snorkeling"]
+  },
+  zh: {
+    title:"Sandy Liu · 作品集", tabProjects:"📁 作品", tabAbout:"關於我",
+    projectsHead:"📦 作品", count:"3 個項目", open:"開啟網站 ↗",
+    p1:"承運商帳單重新計價平台", p1meta:"運費帳務 · 稽核與重新計價",
+    p2:"動態倉儲場景 · 行動版",   p2meta:"Canvas 動畫 · 倉儲現場",
+    p3:"3PL 物流教育訓練",       p3meta:"包裹計價引擎 · 三種語言 · 五個分頁",
+    aboutHead:"👤 關於我", contact:"聯絡方式",
+    kicker:"物流 · 帳務 · 自動化",
+    who:"劉相筠 Sandy Liu",
+    role:"物流作業 · 運費帳務 · 流程自動化",
+    lede:"近六年美國第三方物流經驗，專注於跨境電商、WMS 倉儲作業、運費帳務與合約費率分析。擅長運用 Excel、AI 與自動化工具整理複雜資料，改善重複性流程。",
+    loc:"新北市，台灣",
+    hExp:"工作經歷", hEdu:"學歷", hSkills:"專業技能",
+    hLang:"語言與證照", hInt:"興趣",
+    exp:[
+      {t:"跨境電商物流與帳務專員", m:"2020–2026 · 美國第三方物流公司"},
+      {t:"英語教師", m:"2020"},
+      {t:"門市銷售 · 文創服飾品牌", m:"2018–2019"},
+      {t:"餐飲服務", m:"2017"}
+    ],
+    edu:[{t:"銘傳大學", m:"應用英語學系 · 2014–2018"}],
+    skills:["運費帳務與費率分析","UPS、FedEx 與 USPS 計價",
+            "Excel 公式與資料清理","WMS 倉儲作業與系統測試",
+            "AI 輔助自動化","跨部門溝通"],
+    langs:["中文 · 母語","英文 · 專業級","TOEIC · 840",
+           "西班牙文 · 初級","國際貿易證照"],
+    interests:["足球 · 皇家馬德里","英文驚悚小說 · Tess Gerritsen","游泳與浮潛"]
+  }
+};
+
+var lang = "en";
+function el(tag, cls, txt){ var e=document.createElement(tag); if(cls)e.className=cls;
+  if(txt!==undefined)e.textContent=txt; return e; }
+function fillEntries(node, rows){
+  node.textContent="";
+  rows.forEach(function(r){
+    var d=el("div","entry"); d.appendChild(el("div","t",r.t)); d.appendChild(el("div","m",r.m));
+    node.appendChild(d);
+  });
+}
+function fillBullets(node, items){
+  node.textContent="";
+  items.forEach(function(s){ node.appendChild(el("li",null,s)); });
+}
+function paint(){
+  var t = TXT[lang];
+  document.querySelectorAll("[data-t]").forEach(function(e){
+    var v = t[e.getAttribute("data-t")];
+    if (typeof v === "string") e.textContent = v;
+  });
+  fillEntries(document.getElementById("expList"), t.exp);
+  fillEntries(document.getElementById("eduList"), t.edu);
+  fillBullets(document.getElementById("skillList"), t.skills);
+  fillBullets(document.getElementById("langList"), t.langs);
+  fillBullets(document.getElementById("intList"), t.interests);
+  document.documentElement.lang = (lang==="zh" ? "zh-Hant" : "en");
+  document.getElementById("langBtn").textContent = (lang==="zh" ? "English" : "中文");
+}
+document.getElementById("langBtn").addEventListener("click", function(){
+  lang = (lang==="en" ? "zh" : "en"); paint();
+});
+document.querySelectorAll(".tab").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var want = btn.getAttribute("data-pane");
+    document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b===btn); });
+    document.getElementById("pane-projects").classList.toggle("hidden", want!=="projects");
+    document.getElementById("pane-about").classList.toggle("hidden", want!=="about");
+  });
+});
+paint();
+</script>
+</body>
+</html>
