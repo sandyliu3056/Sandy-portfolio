@@ -5,16 +5,49 @@
 
 ```
 index.html               首頁（作品列表 + About Me + 中英切換）
-reprice-platform.html    作品 01 的實際頁面
 3pl-training.html        作品 03 的實際頁面
 sandy.jpg                About Me 的個人照 560x747
-favicon.svg              瀏覽器分頁圖示
+favicon.png              分頁圖示 256x256（頭像裁切）
+apple-touch-icon.png     iOS 加到主畫面的圖示 180x180
 og.png                   分享預覽圖 1200x630
 verify.js                上線前自我檢查（可選，需要 node）
 README.md                這份文件
 ```
 
-作品 02 連到外部的 `animated-warehouse.vercel.app`，不需要放在這裡。
+作品 01 和 02 都連到外部的獨立部署，不需要放在這裡：
+
+- 01 → `https://reprice-demo.vercel.app/`
+- 02 → `https://animated-warehouse.vercel.app/`
+
+作品 01 原本在這個包裡有一份副本，已經移除——同一個檔案存在兩個地方，
+改了一邊忘記另一邊不會有任何錯誤訊息。現在正本只有 Reprice-Demo 那一份。
+
+---
+
+## ⚠ 子路徑部署（GitHub Pages 必讀）
+
+GitHub Pages 的專案站會放在 **`/<repo 名稱>/`** 底下，例如
+`sandyliu3056.github.io/Sandy-Profilo/`，而不是網域根目錄。
+
+因此這個包裡所有路徑都寫成**相對路徑**（`./sandy.jpg`），
+在根目錄和子路徑都能運作：
+
+```
+./sandy.jpg      →  /Sandy-Profilo/sandy.jpg   ✓
+/sandy.jpg       →  /sandy.jpg                 ✗ 會 404
+```
+
+**不要把這些路徑改回開頭是 `/` 的寫法**，一改就會在 GitHub Pages 上壞掉，
+而且首頁看起來還是正常的——壞的是圖片和另外兩個作品頁。
+
+驗證時可以指定子路徑：
+
+```
+BASE=/Sandy-Profilo node verify.js
+```
+
+不加 `BASE` 就是用網域根目錄驗（Netlify、Vercel、自訂網域屬於這種）。
+兩種都跑一次最保險。
 
 ---
 
@@ -23,8 +56,32 @@ README.md                這份文件
 三個作品頁都在包裡或有外部連結，About Me 已填入真實履歷內容（中英雙語），
 `verify.js` 全數通過，沒有待辦事項。
 
-`favicon.svg` 和 `og.png` 是依站上配色重做的（原檔是圖片，無法擷取）。
-想換回原本的，直接覆蓋同名檔案即可。
+分頁圖示改用頭像插畫裁切而成的 `favicon.png`（256x256，128 色，40KB）。
+首頁和 3PL 訓練頁共用；`reprice-platform.html` 保留它自己內嵌的產品圖示，
+要統一的話把那一行換成和另外兩頁相同即可。
+
+`apple-touch-icon.png` 是 iOS「加入主畫面」時用的圖示，尺寸和格式規定不同，
+所以另外放一張，不加也不影響網站。
+
+`og.png` 是依站上配色重做的（原檔是圖片，無法擷取），想換回原本的直接覆蓋
+同名檔案即可。
+
+### 換網域時唯一要改的兩行
+
+社群分享預覽圖（貼連結到 LINE、Facebook、Slack 時跳出的那張圖）已經寫成
+完整網址，指向目前的 GitHub Pages：
+
+```
+第 11 行  <meta property="og:image" content="https://sandyliu3056.github.io/Sandy-Profilo/og.png">
+第 18 行  <meta name="twitter:image" content="https://sandyliu3056.github.io/Sandy-Profilo/og.png">
+```
+
+**這是整份檔案裡僅有的兩個絕對網址**（另一個 `animated-warehouse.vercel.app`
+是作品 02 本來就在外站）。搬到 `sandyliuportfolio.com` 之後把這兩行的網域
+換掉即可，其他路徑都是相對的、不用動。
+
+沒換的話網站照常運作，只是分享連結時預覽圖會抓不到——而且不會有任何錯誤
+訊息，很容易一直沒發現。
 
 ---
 
