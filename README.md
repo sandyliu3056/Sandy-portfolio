@@ -1,176 +1,76 @@
-# Sandy Liu — Portfolio 部署包
+# Sandy-portfolio 佈署修正包
 
-純靜態網站。**沒有 build 步驟、沒有 node_modules、沒有框架。**
-把這個資料夾的內容整包丟上任何靜態主機就會動。
+修正三件事：meta 標籤還指向舊的 vercel.app 網址、三個網址同時上線導致流量分散、沒有 analytics。
 
-```
-index.html               整個網站（照片與分頁圖示已內嵌）
-reprice-platform.html    作品 01
-3pl-training.html        作品 03
-apple-touch-icon.png     iOS 加到主畫面的圖示 180x180
-favicon.png / .svg       分頁圖示，3pl-training.html 用
-og.png                   分享預覽圖 1200x630
-sandy.jpg                個人照原檔（index.html 已內嵌一份，這張是備份）
-verify.js                上線前自我檢查（可選，需要 node）
-README.md                這份文件
+## 順序
 
-### 為什麼有些能內嵌、有些不行
+**1. 確認主網域由誰服務**
 
-個人照和分頁圖示已經轉成 base64 直接寫進 `index.html`，所以少了兩個檔案，
-也少了兩次網路請求。代價是 index.html 從 15KB 變成 93KB，這個大小完全沒問題。
-
-`og.png` 和 `apple-touch-icon.png` **不能內嵌**，因為讀它們的不是瀏覽器：
-
-- `og.png` 是 LINE、Facebook 的爬蟲**從外部抓**的，它們只認得完整網址，
-  base64 一律抓不到，預覽圖就會消失。
-- `apple-touch-icon.png` 是 iOS 加到主畫面時讀的，data URI 支援不穩定。
-
-簡單的判準：**給瀏覽器看的可以內嵌，給外部程式抓的必須是真正的檔案。**
-
----
-
-## ⚠ 子路徑部署（GitHub Pages 必讀）
-
-GitHub Pages 的專案站會放在 **`/<repo 名稱>/`** 底下，例如
-`sandyliu3056.github.io/Sandy-Profilo/`，而不是網域根目錄。
-
-因此這個包裡所有路徑都寫成**相對路徑**（`./sandy.jpg`），
-在根目錄和子路徑都能運作：
-
-```
-./sandy.jpg      →  /Sandy-Profilo/sandy.jpg   ✓
-/sandy.jpg       →  /sandy.jpg                 ✗ 會 404
+```bash
+bash check_host.sh sandyliuportfolio.com
 ```
 
-**不要把這些路徑改回開頭是 `/` 的寫法**，一改就會在 GitHub Pages 上壞掉，
-而且首頁看起來還是正常的——壞的是圖片和另外兩個作品頁。
+結果決定下一步 analytics 選哪一個。Vercel 才能用 `/_vercel/insights/script.js`，GitHub Pages 上那個路徑不存在。
 
-驗證時可以指定子路徑：
+**2. 設定**
 
-```
-BASE=/Sandy-Profilo node verify.js
-```
+打開 `patch_portfolio.py`，改 CONFIG 區塊：
 
-不加 `BASE` 就是用網域根目錄驗（Netlify、Vercel、自訂網域屬於這種）。
-兩種都跑一次最保險。
-
----
-
-## 狀態：可以直接上線
-
-三個作品頁都在包裡或有外部連結，About Me 已填入真實履歷內容（中英雙語），
-`verify.js` 全數通過，沒有待辦事項。
-
-分頁圖示改用頭像插畫裁切而成的 `favicon.png`（256x256，128 色，40KB）。
-首頁和 3PL 訓練頁共用；`reprice-platform.html` 保留它自己內嵌的產品圖示，
-要統一的話把那一行換成和另外兩頁相同即可。
-
-`apple-touch-icon.png` 是 iOS「加入主畫面」時用的圖示，尺寸和格式規定不同，
-所以另外放一張，不加也不影響網站。
-
-`og.png` 是依站上配色重做的（原檔是圖片，無法擷取），想換回原本的直接覆蓋
-同名檔案即可。
-
-### 同一份內容有兩個網址
-
-```
-https://sandy-portfolio-red.vercel.app/            ← 正本
-https://sandyliu3056.github.io/Sandy-Profilo/  ← 同樣內容
-```
-
-`canonical` 已指向 Vercel。**GitHub Pages 那份也要換上這個 index.html**，
-它才會正確地說「正本在 Vercel」——那句話是寫在它自己的檔案裡的。
-
-### 換網域時要改的四行
-
-社群分享預覽圖（貼連結到 LINE、Facebook、Slack 時跳出的那張圖）已經寫成
-完整網址，指向目前的 GitHub Pages：
-
-```
-<link rel="canonical"      href="https://sandy-portfolio-red.vercel.app/">
-<meta property="og:url"    content="https://sandy-portfolio-red.vercel.app/">
-<meta property="og:image"  content="https://sandy-portfolio-red.vercel.app/og.png">
-<meta name="twitter:image" content="https://sandy-portfolio-red.vercel.app/og.png">
-```
-
-**這是整份檔案裡僅有的兩個絕對網址**（另一個 `animated-warehouse.vercel.app`
-是作品 02 本來就在外站）。搬到 `sandyliuportfolio.com` 之後把這兩行的網域
-換掉即可，其他路徑都是相對的、不用動。
-
-沒換的話網站照常運作，只是分享連結時預覽圖會抓不到——而且不會有任何錯誤
-訊息，很容易一直沒發現。
-
----
-
-## 部署方式（挑一個）
-
-**接續現在的 chatgpt.site**
-直接上傳這個資料夾的檔案取代原本的內容即可。自訂網域
-`sandyliuportfolio.com` 已經指向該處，換內容不需要重設 DNS。
-
-**Netlify（拖曳即可，最快）**
-把整個資料夾拖到 app.netlify.com/drop。不需要帳號也能先看結果。
-
-**Vercel**
-```
-npx vercel --prod
-```
-在這個資料夾底下執行。它會自動判定是靜態站，不需要任何設定檔。
-
-**GitHub Pages**
-推到 repo，Settings → Pages → Source 選 `main` 分支的根目錄。
-
-**自己的主機**
-`scp -r ./* user@host:/var/www/html/` 就結束了，沒有其他步驟。
-
----
-
-## 上線前自我檢查（可選）
-
-需要 node 和 playwright。它會起一個本機伺服器、用真的瀏覽器開頁面，
-檢查每一個連結和資源是否都回 200、有沒有 JS 錯誤。
-
-```
-npm install playwright
-node verify.js
-```
-
-`reprice-platform.html` 還沒補上的話，它會回報那一筆 404 並以非零狀態結束——
-這正是它該做的事。
-
----
-
-## 改內容的地方
-
-全部在 `index.html` 一個檔案裡，沒有其他地方要同步：
-
-| 想改什麼 | 改哪裡 |
+| 變數 | 說明 |
 |---|---|
-| 新增作品 | `<div class="projectList">` 裡複製一個 `<article class="project">`，並在 `TXT` 兩種語言各加一組文字 |
-| 作品數量 | `<span data-t="count">`＋`TXT` 裡的 `count`（**兩個語言都要改**） |
-| 任何文字 | `TXT.en` / `TXT.zh` 兩份字典，key 必須一一對應 |
-| 顏色 | 最上面的 `:root{--bg/--panel/--ink/--gold/--gold2}` |
-| 頁尾的貓狗 | 見下一節 |
+| `CANONICAL_DOMAIN` | 主網域，不加結尾斜線 |
+| `OLD_ORIGINS` | 要被取代掉的舊網域 |
+| `REDIRECT_FROM_HOSTS` | 要被導走的 hostname。只列明確舊站，preview 與 localhost 才不會被誤導 |
+| `ANALYTICS` | `vercel` / `cloudflare` / `goatcounter` / `umami` / `none` |
+| `CF_BEACON_TOKEN` 等 | 依上面選的填對應那一個 |
 
-新增作品時最容易漏掉的就是「數量」那一欄，因為它是寫死的字串，
-不是自動算的。`verify.js` 不會抓這個，要自己記得。
+**3. 先空跑**
 
----
+```bash
+python3 patch_portfolio.py index.html --dry-run
+```
 
-## 頁尾的貓狗散步條
+**4. 實跑**
 
-頁尾上方那條地面上有一隻柯基和一隻貓在走動，滑鼠移過去或點一下會有反應。
-純 canvas 畫的，沒有圖檔、沒有外部相依，所以換網域、換主機都不用管它。
+```bash
+python3 patch_portfolio.py index.html
+```
 
-在 `index.html` 裡是獨立的三段，彼此不相依：
+會先備份成 `index.html.bak.<時間戳>` 再寫入。驗證未過就不寫檔。重複執行不會重複注入。
 
-| 想做什麼 | 改哪裡 |
+**5. 驗證**
+
+```bash
+npm install jsdom
+node verify_redirect.js index.html
+```
+
+**6. 推上去**
+
+推完清 CDN 快取，用無痕視窗開舊網址確認會跳轉。
+
+## 驗證涵蓋
+
+- 舊 host 進來會導航；主網域、localhost、Vercel preview 不會
+- 導向目標保留 query 與 hash
+- canonical / og:url / og:image / twitter:image 都指向主網域
+- 全檔沒有殘留 vercel.app 網址
+
+`verify_redirect.js` 讀的是檔案裡的腳本原文，不是另外寫一份複製品，所以不會和上線內容脫節。
+
+## 檔案
+
+| 檔案 | 用途 |
 |---|---|
-| 換毛色 | 最後一段 `<script>` 開頭的 `DOG_A`／`DOG_B`／`CAT_A`／`CAT_B` |
-| 調高度 | CSS 的 `.petstrip{height:clamp(...)}` |
-| 整個拿掉 | 刪 `<div class="petstrip">` 那一行 |
+| `patch_portfolio.py` | 主程式 |
+| `verify_redirect.js` | jsdom 驗證 |
+| `check_host.sh` | 判斷 host |
+| `snippets.html` | 不想跑 script 時手動貼的三段 |
 
-其餘顏色都吃 `:root` 的變數，換配色時會自己跟著變。
+## 注意
 
-使用者若在系統開了「減少動態效果」，這條會自動變成靜止的一張圖；
-分頁切到背景或捲動到看不見時也會自己停，不會一直吃電。
+改完確認 `https://sandyliuportfolio.com/og.png` 開得起來，否則社群預覽圖會空白。
+
+redirect 是 client-side JS，搜尋引擎權重轉移不如 301 完整。GitHub Pages 沒有 server-side redirect，這是可行範圍內最好的做法；`canonical` 已經指向主網域，兩者搭配足夠。若舊網址那份改放 Vercel，可以改用 `vercel.json` 的 301。
+
+`REDIRECT_FROM_HOSTS` 採白名單而非黑名單，新增舊網址時要自己加進去。

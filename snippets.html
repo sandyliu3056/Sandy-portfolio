@@ -1,0 +1,57 @@
+<!--
+  手動貼上版本。不想跑 script 的話，照下面三段自己改 index.html。
+  順序：A 放 <head> 最前面，B 是原本的 meta 改網址，C 放 </head> 前。
+-->
+
+
+<!-- ════════════════════════════════════════════════════════════
+     A. canonical redirect — 放在 <head> 開頭，越前面越好
+     舊網址進來的人送到主網域，query 和 #anchor 都保留。
+     只列明確的舊 host，Vercel preview 和 localhost 不受影響。
+     ════════════════════════════════════════════════════════════ -->
+<!-- portfolio-canonical-redirect:start -->
+<script>
+(function () {
+  var stale = ['sandyliu3056.github.io', 'sandy-portfolio-red.vercel.app'];
+  if (stale.indexOf(location.hostname) !== -1) {
+    location.replace('https://sandyliuportfolio.com/' + location.search + location.hash);
+  }
+})();
+</script>
+<!-- portfolio-canonical-redirect:end -->
+
+
+<!-- ════════════════════════════════════════════════════════════
+     B. meta 網址 — 把原本四行的 vercel.app 換成主網域
+     ════════════════════════════════════════════════════════════ -->
+<link rel="canonical" href="https://sandyliuportfolio.com/">
+<meta property="og:url" content="https://sandyliuportfolio.com/">
+<meta property="og:image" content="https://sandyliuportfolio.com/og.png">
+<meta name="twitter:image" content="https://sandyliuportfolio.com/og.png">
+
+
+<!-- ════════════════════════════════════════════════════════════
+     C. analytics — 選一個，放 </head> 前
+     ════════════════════════════════════════════════════════════ -->
+
+<!-- portfolio-analytics:start -->
+
+<!-- C-1  Vercel（主網域指向 Vercel 才有效；先在 Project → Analytics 按 Enable） -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+<!-- C-2  Cloudflare Web Analytics（不必改 DNS，加 hostname 拿 token 即可）
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "你的token"}'></script>
+-->
+
+<!-- C-3  GoatCounter（最輕，跨網域共用一份）
+<script data-goatcounter="https://你的代號.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+-->
+
+<!-- C-4  Umami Cloud
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="你的website-id"></script>
+-->
+
+<!-- portfolio-analytics:end -->
