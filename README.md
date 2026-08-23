@@ -17,8 +17,8 @@ GitHub Pages:三個檔案放進 repo 根目錄,Settings → Pages 選該分支�
 否則分享預覽會抓到舊站的圖。
 
 ## 這一版的內容
+- 熱帶海洋版(漸層底色、紅鶴、棕櫚、海浪、寵物散步條)
 - 中文版本與語言切換鈕已移除,只留英文
-- 作品卡副標三行已移除
-- 「3 items」計數已移除
-- About Me 用原本的證件照,奶油白內框 + 粉色外框,圓角
-- 分頁圖示(favicon / apple-touch-icon)換成卡通半身版
+- 作品卡副標與「3 items」計數已移除
+- About Me 用原本的證件照,奶油白內框 + 粉色外框
+- 分頁圖示 favicon 與 apple-touch-icon 用卡通半身版
