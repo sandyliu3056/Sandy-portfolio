@@ -1,76 +1,24 @@
-# Sandy-portfolio 佈署修正包
-
-修正三件事：meta 標籤還指向舊的 vercel.app 網址、三個網址同時上線導致流量分散、沒有 analytics。
-
-## 順序
-
-**1. 確認主網域由誰服務**
-
-```bash
-bash check_host.sh sandyliuportfolio.com
-```
-
-結果決定下一步 analytics 選哪一個。Vercel 才能用 `/_vercel/insights/script.js`，GitHub Pages 上那個路徑不存在。
-
-**2. 設定**
-
-打開 `patch_portfolio.py`，改 CONFIG 區塊：
-
-| 變數 | 說明 |
-|---|---|
-| `CANONICAL_DOMAIN` | 主網域，不加結尾斜線 |
-| `OLD_ORIGINS` | 要被取代掉的舊網域 |
-| `REDIRECT_FROM_HOSTS` | 要被導走的 hostname。只列明確舊站，preview 與 localhost 才不會被誤導 |
-| `ANALYTICS` | `vercel` / `cloudflare` / `goatcounter` / `umami` / `none` |
-| `CF_BEACON_TOKEN` 等 | 依上面選的填對應那一個 |
-
-**3. 先空跑**
-
-```bash
-python3 patch_portfolio.py index.html --dry-run
-```
-
-**4. 實跑**
-
-```bash
-python3 patch_portfolio.py index.html
-```
-
-會先備份成 `index.html.bak.<時間戳>` 再寫入。驗證未過就不寫檔。重複執行不會重複注入。
-
-**5. 驗證**
-
-```bash
-npm install jsdom
-node verify_redirect.js index.html
-```
-
-**6. 推上去**
-
-推完清 CDN 快取，用無痕視窗開舊網址確認會跳轉。
-
-## 驗證涵蓋
-
-- 舊 host 進來會導航；主網域、localhost、Vercel preview 不會
-- 導向目標保留 query 與 hash
-- canonical / og:url / og:image / twitter:image 都指向主網域
-- 全檔沒有殘留 vercel.app 網址
-
-`verify_redirect.js` 讀的是檔案裡的腳本原文，不是另外寫一份複製品，所以不會和上線內容脫節。
+# Sandy Liu — Portfolio 佈署包
 
 ## 檔案
+- `index.html` — 整站,單一檔案,無外部依賴(字型、圖示、頭像皆已內嵌)
+- `apple-touch-icon.png` — iOS 加到主畫面時的圖示,180×180
+- `og.png` — 分享預覽卡,1200×630
 
-| 檔案 | 用途 |
-|---|---|
-| `patch_portfolio.py` | 主程式 |
-| `verify_redirect.js` | jsdom 驗證 |
-| `check_host.sh` | 判斷 host |
-| `snippets.html` | 不想跑 script 時手動貼的三段 |
+三個檔案平放在網站根目錄即可,不需要建置步驟。
 
-## 注意
+## 佈署
+Vercel:整個資料夾拖進 Vercel 專案,或 `vercel --prod`。
+GitHub Pages:三個檔案放進 repo 根目錄,Settings → Pages 選該分支。
 
-改完確認 `https://sandyliuportfolio.com/og.png` 開得起來，否則社群預覽圖會空白。
+## 換網域要改的地方
+`index.html` 開頭有三處寫死 `https://sandy-portfolio-red.vercel.app`:
+`<link rel="canonical">`、`og:url`、`og:image`。換網域時一併改掉,否則
+分享預覽會抓到舊站的圖。
 
-redirect 是 client-side JS，搜尋引擎權重轉移不如 301 完整。GitHub Pages 沒有 server-side redirect，這是可行範圍內最好的做法；`canonical` 已經指向主網域，兩者搭配足夠。若舊網址那份改放 Vercel，可以改用 `vercel.json` 的 301。
-
-`REDIRECT_FROM_HOSTS` 採白名單而非黑名單，新增舊網址時要自己加進去。
+## 版本內容
+- 作品卡副標(Freight billing…等三行)已移除
+- 「3 items」計數已移除
+- CALIFORNIA NOTES 浮水印已移除,改為熱帶元素
+- 頭像換成插畫版,上衣白色,圓形外框
+- 頁面底色與寵物散步條之間改為漸層銜接,無接縫
