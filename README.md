@@ -1,11 +1,12 @@
 # Sandy Liu — Portfolio 佈署包
 
 ## 檔案
-- `index.html` — 整站,單一檔案,無外部依賴(字型、圖示、照片皆已內嵌)
+- `index.html` — 工作站,單一檔案,無外部依賴(字型、圖示、照片皆已內嵌)
+- `life.html` — 生活版,同樣單一檔案;兩頁的頁首互相有連結
 - `apple-touch-icon.png` — iOS 加到主畫面的圖示,180×180
 - `og.png` — 分享預覽卡,1200×630
 
-三個檔案平放在網站根目錄即可,不需要建置步驟。
+四個檔案平放在網站根目錄即可,不需要建置步驟。
 
 ## 佈署
 Vercel:整個資料夾拖進專案,或 `vercel --prod`。
@@ -22,3 +23,4 @@ GitHub Pages:三個檔案放進 repo 根目錄,Settings → Pages 選該分支�
 - 作品卡副標與「3 items」計數已移除
 - About Me 用原本的證件照,奶油白內框 + 粉色外框
 - 分頁圖示 favicon、apple-touch-icon 與分享卡 og.png 都用卡通半身版
+- 頁尾散步的兩隻改成柯基與白布偶貓(藍眼、重點色耳尾)
